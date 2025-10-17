@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Drew Bot (AI Code Assistant)</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/loader.js"></script>
+</head>
+<body>
+  <header>
+    <div id="top-bar">
+      <div id="left-controls">
+        <label class="file-upload-wrapper">
+          <span class="file-label">Choose File</span>
+          <input type="file" id="fileUpload" />
+          <span id="fileName" class="file-name">No file chosen</span>
+        </label>
+      </div>
+
+      <h1>Drew Bot (AI Code Assistant)</h1>
+
+      <div id="right-controls">
+        <button id="saveBtn">💾 Save</button>
+        <button id="undoBtn">↩ Undo</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="editor"></div>
+    <div id="chat">
+      <div id="messages"></div>
+      <div id="chatInput">
+        <input id="userInput" placeholder="Ask Drew Bot to modify or explain your code..." />
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let editor;
+    let messages = [];
+    let previousCode = "";
+
+    // --- Load Monaco Editor ---
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor'), {
+        value: "print('Hello world!')",
+        language: 'python',
+        theme: 'vs-dark',
+        automaticLayout: true
+      });
+
+      // Detect language as code changes
+      editor.onDidChangeModelContent(() => {
+        const code = editor.getValue();
+        const currentLang = monaco.editor.getModelLanguage(editor.getModel());
+        const detected = detectLanguageFromContent(code);
+        if (detected && detected !== currentLang) {
+          monaco.editor.setModelLanguage(editor.getModel(), detected);
+          appendMessage("Drew Bot", `🧠 Detected language: ${detected}`);
+        }
+      });
+    });
+
+    // --- Detect Language by Filename ---
+    function getLanguageFromFilename(filename) {
+      if (!filename) return 'plaintext';
+      const ext = filename.split('.').pop().toLowerCase();
+      const map = {
+        py: 'python',
+        js: 'javascript',
+        jsx: 'javascript',
+        ts: 'typescript',
+        html: 'html',
+        css: 'css',
+        json: 'json',
+        md: 'markdown',
+        sql: 'sql',
+        yaml: 'yaml',
+        yml: 'yaml',
+        cpp: 'cpp',
+        c: 'c',
+        java: 'java',
+        php: 'php',
+        go: 'go',
+        sh: 'shell',
+        bat: 'bat'
+      };
+      return map[ext] || 'plaintext';
+    }
+
+    // --- Detect Language by Code Content ---
+    function detectLanguageFromContent(code) {
+      if (!code.trim()) return 'plaintext';
+      const lower = code.toLowerCase();
+      if (lower.includes('<!doctype html') || lower.includes('<html')) return 'html';
+      if (lower.includes('function ') || lower.includes('console.log') || lower.includes('=>')) return 'javascript';
+      if (lower.includes('import pandas') || lower.includes('def ') || lower.includes('print(')) return 'python';
+      if (lower.includes('select ') && lower.includes(' from ')) return 'sql';
+      if (lower.includes('body {') || lower.includes('color:')) return 'css';
+      if (lower.trim().startsWith('{') && lower.trim().endsWith('}')) return 'json';
+      if (lower.includes('class ') && lower.includes('public static void main')) return 'java';
+      return 'plaintext';
+    }
+
+    // --- File Upload ---
+    document.getElementById('fileUpload').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      const fileNameSpan = document.getElementById('fileName');
+      if (!file) {
+        fileNameSpan.textContent = "No file chosen";
+        return;
+      }
+      fileNameSpan.textContent = file.name;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      editor.setValue(data.content);
+
+      const language = getLanguageFromFilename(file.name);
+      monaco.editor.setModelLanguage(editor.getModel(), language);
+      appendMessage("Drew Bot", `📂 Loaded ${data.filename} (${language})`);
+    });
+
+    // --- Save ---
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const filename = prompt("Save as:", "main.py");
+      if (!filename) return;
+      const res = await fetch("/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename, code: editor.getValue() })
+      });
+      const data = await res.json();
+      const lang = getLanguageFromFilename(filename);
+      monaco.editor.setModelLanguage(editor.getModel(), lang);
+      appendMessage("Drew Bot", `💾 ${data.message} (Detected: ${lang})`);
+    });
+
+    // --- Undo ---
+    document.getElementById('undoBtn').addEventListener('click', () => {
+      if (previousCode) {
+        editor.setValue(previousCode);
+        appendMessage("Drew Bot", "↩ Code reverted to previous version.");
+      } else {
+        appendMessage("Drew Bot", "No previous version available.");
+      }
+    });
+
+    // --- Send Message to GPT ---
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const msg = input.value.trim();
+      if (!msg) return;
+      messages.push({ role: "user", content: msg });
+      appendMessage("You", msg);
+      input.value = "";
+
+      // --- Show "thinking" message ---
+      const messagesDiv = document.getElementById('messages');
+      const thinkingEl = document.createElement('div');
+      thinkingEl.classList.add('message', 'system-msg');
+      thinkingEl.innerHTML = `<div class="sender">Drew Bot</div><div class="content">🤔 Drew Bot is thinking<span id="thinkingTime"> (0s)</span>...</div>`;
+      messagesDiv.appendChild(thinkingEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      let seconds = 0;
+      const startTime = performance.now();
+      const timer = setInterval(() => {
+        seconds++;
+        const timeEl = document.getElementById('thinkingTime');
+        if (timeEl) timeEl.textContent = ` (${seconds}s)`;
+      }, 1000);
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages, code: editor.getValue() })
+        });
+
+        const data = await res.json();
+        clearInterval(timer);
+        thinkingEl.remove();
+
+        const endTime = performance.now();
+        const totalSeconds = ((endTime - startTime) / 1000).toFixed(1);
+
+        const reply = data.reply;
+        messages.push({ role: "assistant", content: reply });
+
+        const codeMatch = reply.match(/```(?:[a-zA-Z]+)?\n([\s\S]*?)```/);
+        let summaryText = reply;
+
+        if (codeMatch) {
+          summaryText = reply.split(codeMatch[0])[0].trim();
+          previousCode = editor.getValue();
+          const newCode = codeMatch[1].trim();
+          editor.setValue(newCode);
+          appendMessage(
+            "Drew Bot",
+            `${summaryText || "✅ Code updated from Drew Bot changes."}<br><br>⏱ Response time: ${totalSeconds}s`
+          );
+        } else {
+          appendMessage("Drew Bot", `💬 ${reply}<br><br>⏱ Response time: ${totalSeconds}s`);
+        }
+      } catch (error) {
+        clearInterval(timer);
+        thinkingEl.remove();
+        appendMessage("Drew Bot", "⚠️ There was an error reaching the API.");
+        console.error(error);
+      }
+    }
+
+
+    // --- Event Listeners ---
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('userInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // --- Message Rendering ---
+    function appendMessage(sender, text) {
+      const messagesDiv = document.getElementById('messages');
+      const msgEl = document.createElement('div');
+      msgEl.classList.add('message');
+
+      if (sender === "You") msgEl.classList.add('user-msg');
+      else if (sender === "Drew Bot") msgEl.classList.add('system-msg');
+
+      let rendered = text;
+      if (sender === "Drew Bot") {
+        try { rendered = marked.parse(text); } catch { rendered = text; }
+      }
+
+      msgEl.innerHTML = `<div class="sender">${sender}</div><div class="content">${rendered}</div>`;
+      messagesDiv.appendChild(msgEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  </script>
+</body>
+</html>
