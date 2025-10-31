@@ -10,19 +10,40 @@
 <body>
   <header>
     <div id="top-bar">
-      <div id="left-controls">
+      <!-- Top row -->
+      <div id="top-row">
         <label class="file-upload-wrapper">
           <span class="file-label">Choose File</span>
           <input type="file" id="fileUpload" />
           <span id="fileName" class="file-name">No file chosen</span>
         </label>
+        
+        <div id="model-controls">
+          <select id="modelSelect">
+            <option value="gpt-4o-mini" selected>4o-mini</option>
+            <option value="gpt-4o">4o</option>
+          </select>
+        </div>
       </div>
 
-      <h1>Drew Bot (AI Code Assistant)</h1>
+      <!-- Bottom row -->
+      <div id="bottom-row">
+        <div id="file-controls-bottom">
+          <input type="text" id="filenameInput" placeholder="filename.py" value="main.py" class="filename-input" />
+          <button id="saveBtn">💾 Save</button>
+          <button id="undoBtn">↩ Undo</button>
+        </div>
 
-      <div id="right-controls">
-        <button id="saveBtn">💾 Save</button>
-        <button id="undoBtn">↩ Undo</button>
+        <h1>Drew Bot (AI Code Assistant)</h1>
+
+        <div id="speed-controls">
+          <select id="animationSpeed">
+            <option value="slow">🐌 Slow</option>
+            <option value="medium" >⚡ Medium</option>
+            <option value="fast">🚀 Fast</option>
+            <option value="instant" selected>⏩ Instant</option>
+          </select>
+        </div>
       </div>
     </div>
   </header>
@@ -53,16 +74,13 @@
         automaticLayout: true
       });
 
-      // Detect language as code changes
-      editor.onDidChangeModelContent(() => {
-        const code = editor.getValue();
-        const currentLang = monaco.editor.getModelLanguage(editor.getModel());
-        const detected = detectLanguageFromContent(code);
-        if (detected && detected !== currentLang) {
-          monaco.editor.setModelLanguage(editor.getModel(), detected);
-          appendMessage("Drew Bot", `🧠 Detected language: ${detected}`);
-        }
-      });
+      // Detect language on initial load
+      const initialCode = editor.getValue();
+      const detected = detectLanguageFromContent(initialCode);
+      if (detected && detected !== 'python') {
+        monaco.editor.setModelLanguage(editor.getModel(), detected);
+        appendMessage("Drew Bot", `🧠 Detected language: ${detected}`);
+      }
     });
 
     // --- Detect Language by Filename ---
@@ -106,15 +124,380 @@
       return 'plaintext';
     }
 
+    // --- Animation Settings ---
+    let animationEnabled = true;
+    let animationSpeed = 'instant'; // 'slow', 'medium', 'fast', 'instant'
+
+    const speedSettings = {
+      slow: { charDelay: 8, lineDelay: 50 },
+      medium: { charDelay: 3, lineDelay: 20 },
+      fast: { charDelay: 1, lineDelay: 5 },
+      instant: { charDelay: 0, lineDelay: 0 }
+    };
+
+    // --- Compute Diff Between Two Strings ---
+    function computeDiff(oldCode, newCode) {
+      const oldLines = oldCode.split('\n');
+      const newLines = newCode.split('\n');
+      const changes = [];
+      
+      // More robust matching: use a greedy approach that processes in order
+      // and matches lines that appear in both, prioritizing proximity
+      
+      // Build frequency map for old lines to help with duplicate detection
+      const oldLineFreq = new Map();
+      oldLines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (!oldLineFreq.has(trimmed)) {
+          oldLineFreq.set(trimmed, []);
+        }
+        oldLineFreq.get(trimmed).push(idx);
+      });
+      
+      // Track matched lines
+      const oldMatched = new Set();
+      const newMatched = new Set();
+      
+      // Match lines sequentially, allowing for shifts
+      for (let newIdx = 0; newIdx < newLines.length; newIdx++) {
+        if (newMatched.has(newIdx)) continue;
+        
+        const newLine = newLines[newIdx];
+        const trimmedNew = newLine.trim();
+        
+        if (trimmedNew === '' || !oldLineFreq.has(trimmedNew)) {
+          // Empty line or line not in old code - skip for now
+          continue;
+        }
+        
+        const possibleOldIndices = oldLineFreq.get(trimmedNew);
+        
+        // Find best match considering:
+        // 1. Proximity to expected position
+        // 2. Not already matched
+        // 3. Maintains relative order
+        let bestOldIdx = -1;
+        let bestScore = -Infinity;
+        
+        for (const oldIdx of possibleOldIndices) {
+          if (oldMatched.has(oldIdx)) continue;
+          
+          const positionDiff = oldIdx - newIdx; // Negative means old line is before new line
+          
+          // Allow significant shifts (up to 200 lines) to handle large insertions
+          if (Math.abs(positionDiff) <= 200) {
+            // Score favors:
+            // - Lines that are close to their position
+            // - Lines that come from after the new position (maintains order better)
+            let score = 100 - Math.abs(positionDiff);
+            
+            // Bonus for maintaining forward order (old line comes after new position)
+            if (positionDiff >= -10 && positionDiff <= 50) {
+              score += 30;
+            }
+            
+            if (score > bestScore) {
+              bestScore = score;
+              bestOldIdx = oldIdx;
+            }
+          }
+        }
+        
+        if (bestOldIdx !== -1 && bestScore > 0) {
+          oldMatched.add(bestOldIdx);
+          newMatched.add(newIdx);
+        }
+      }
+      
+      // Handle empty lines more carefully - match them if they're near matched lines
+      for (let newIdx = 0; newIdx < newLines.length; newIdx++) {
+        if (newMatched.has(newIdx)) continue;
+        
+        const newLine = newLines[newIdx];
+        const trimmedNew = newLine.trim();
+        
+        if (trimmedNew === '' && oldLineFreq.has('')) {
+          const possibleOldIndices = oldLineFreq.get('');
+          for (const oldIdx of possibleOldIndices) {
+            if (!oldMatched.has(oldIdx)) {
+              const positionDiff = Math.abs(oldIdx - newIdx);
+              if (positionDiff <= 100) {
+                oldMatched.add(oldIdx);
+                newMatched.add(newIdx);
+                break;
+              }
+            }
+          }
+        }
+      }
+      
+      // All unmatched lines in new code are changes
+      for (let newIdx = 0; newIdx < newLines.length; newIdx++) {
+        if (!newMatched.has(newIdx)) {
+          changes.push({
+            lineNumber: newIdx + 1,
+            oldLine: '',
+            newLine: newLines[newIdx],
+            type: 'added'
+          });
+        }
+      }
+      
+      return changes;
+    }
+
+    // --- Animate Code Changes ---
+    async function animateCodeChange(newCode) {
+      const oldCode = editor.getValue();
+      const model = editor.getModel();
+      
+      // Compute changes before modifying editor
+      const changes = computeDiff(oldCode, newCode);
+
+      if (!animationEnabled || animationSpeed === 'instant') {
+        editor.setValue(newCode);
+        // Return changes so caller can handle highlighting
+        return changes;
+      }
+
+      const settings = speedSettings[animationSpeed];
+
+      // Animate by typing out the new code
+      editor.setValue('');
+      const lines = newCode.split('\n');
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lineNumber = i + 1;
+        const isChanged = changes.some(c => c.lineNumber === lineNumber);
+        
+        if (isChanged && settings.charDelay > 0) {
+          // Type character by character for changed lines
+          for (let j = 0; j < line.length; j++) {
+            const currentValue = editor.getValue();
+            const char = line[j];
+            editor.setValue(currentValue + char);
+            
+            // Move cursor to end
+            const position = model.getPositionAt(editor.getValue().length);
+            editor.setPosition(position);
+            editor.revealPositionInCenter(position);
+            
+            await sleep(settings.charDelay);
+          }
+        } else {
+          // Instantly add unchanged lines
+          const currentValue = editor.getValue();
+          editor.setValue(currentValue + line);
+        }
+        
+        // Add newline except for last line
+        if (i < lines.length - 1) {
+          editor.setValue(editor.getValue() + '\n');
+        }
+        
+        if (isChanged && settings.lineDelay > 0) {
+          await sleep(settings.lineDelay);
+        }
+      }
+
+      // Return changes so caller can handle highlighting
+      return changes;
+    }
+
+    // --- Highlight Changed Lines After Animation ---
+    async function highlightChangedLines(changes, newCode) {
+      if (changes.length === 0) return;
+      
+      const model = editor.getModel();
+      const newLines = newCode.split('\n');
+      
+      // If multiple changes, apply them sequentially for visual effect
+      if (changes.length > 1) {
+        // For many changes (>5), highlight in batches
+        if (changes.length > 5) {
+          // Determine batch size based on number of changes
+          let batchSize;
+          if (changes.length <= 30) {
+            batchSize = changes.length <= 15 ? 5 : 10;
+          } else {
+            batchSize = Math.min(20, Math.floor(changes.length / 3));
+          }
+          
+          // Group changes into batches
+          const batches = [];
+          for (let i = 0; i < changes.length; i += batchSize) {
+            batches.push(changes.slice(i, i + batchSize));
+          }
+          
+          // Highlight each batch sequentially
+          for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+            const batch = batches[batchIdx];
+            const batchDecorations = [];
+            
+            // Create decorations for this batch
+            batch.forEach(change => {
+              const lineNumber = change.lineNumber;
+              if (lineNumber <= newLines.length) {
+                batchDecorations.push({
+                  range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                  options: {
+                    isWholeLine: true,
+                    className: 'line-changing',
+                    linesDecorationsClassName: 'line-changing-glyph'
+                  }
+                });
+              }
+            });
+            
+            const batchDecorationIds = editor.deltaDecorations([], batchDecorations);
+            
+            // Wait for fade-in
+            await sleep(300);
+            
+            // Keep visible for the same duration as a single line (300ms fade-in + 850ms visible + 300ms fade-out = 1450ms total)
+            await sleep(850);
+            
+            // Fade out this batch
+            const fadeOutDecorations = [];
+            batch.forEach(change => {
+              const lineNumber = change.lineNumber;
+              if (lineNumber <= newLines.length) {
+                fadeOutDecorations.push({
+                  range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                  options: {
+                    isWholeLine: true,
+                    className: 'line-changing line-changing-fade-out',
+                    linesDecorationsClassName: 'line-changing-glyph line-changing-fade-out'
+                  }
+                });
+              }
+            });
+            
+            editor.deltaDecorations(batchDecorationIds, fadeOutDecorations);
+            
+            // Wait for fade-out
+            await sleep(300);
+            
+            // Clear this batch before moving to next
+            editor.deltaDecorations(batchDecorationIds, []);
+          }
+        } else {
+          // For 2-5 changes, use sequential highlighting
+          // Calculate timing based on number of changes
+          const fadeInTime = 300;
+          const visibleTime = 850;
+          const fadeOutTime = 300;
+          
+          // Highlight each change one at a time, complete cycle before next
+          for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
+            const lineNumber = change.lineNumber;
+            
+            if (lineNumber <= newLines.length) {
+              const decoration = {
+                range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                options: {
+                  isWholeLine: true,
+                  className: 'line-changing',
+                  linesDecorationsClassName: 'line-changing-glyph'
+                }
+              };
+              
+              // Add decoration for this line
+              const decorationIds = editor.deltaDecorations([], [decoration]);
+              
+              // Wait for fade-in to complete
+              await sleep(fadeInTime);
+              
+              // Keep visible for a moment
+              await sleep(visibleTime);
+              
+              // Start fade-out for this line
+              const fadeOutDecoration = {
+                range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                options: {
+                  isWholeLine: true,
+                  className: 'line-changing line-changing-fade-out',
+                  linesDecorationsClassName: 'line-changing-glyph line-changing-fade-out'
+                }
+              };
+              
+              editor.deltaDecorations(decorationIds, [fadeOutDecoration]);
+              
+              // Wait for fade-out animation to complete
+              await sleep(fadeOutTime);
+              
+              // Clear this decoration before moving to next
+              editor.deltaDecorations(decorationIds, []);
+            }
+          }
+        }
+      } else {
+        // Single change - give it more time to be noticeable
+        const decorations = [];
+        changes.forEach(change => {
+          const lineNumber = change.lineNumber;
+          if (lineNumber <= newLines.length) {
+            decorations.push({
+              range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+              options: {
+                isWholeLine: true,
+                className: 'line-changing',
+                linesDecorationsClassName: 'line-changing-glyph'
+              }
+            });
+          }
+        });
+
+        const decorationIds = editor.deltaDecorations([], decorations);
+
+        // Wait for fade-in to complete, then keep highlight visible longer
+        await sleep(300); // Wait for fade-in animation
+        await sleep(2000); // Keep visible longer for single changes
+        
+        // Apply fade-out animation by updating decorations
+        const fadeOutDecorations = [];
+        changes.forEach(change => {
+          const lineNumber = change.lineNumber;
+          if (lineNumber <= newLines.length) {
+            fadeOutDecorations.push({
+              range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+              options: {
+                isWholeLine: true,
+                className: 'line-changing line-changing-fade-out',
+                linesDecorationsClassName: 'line-changing-glyph line-changing-fade-out'
+              }
+            });
+          }
+        });
+
+        editor.deltaDecorations(decorationIds, fadeOutDecorations);
+
+        // Wait for fade-out animation to complete (0.3s)
+        await sleep(300);
+
+        // Clear decorations
+        editor.deltaDecorations(decorationIds, []);
+      }
+    }
+
+    // --- Sleep Helper ---
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     // --- File Upload ---
     document.getElementById('fileUpload').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       const fileNameSpan = document.getElementById('fileName');
+      const filenameInput = document.getElementById('filenameInput');
       if (!file) {
         fileNameSpan.textContent = "No file chosen";
         return;
       }
       fileNameSpan.textContent = file.name;
+      filenameInput.value = file.name; // Update filename input
 
       const formData = new FormData();
       formData.append("file", file);
@@ -122,15 +505,25 @@
       const data = await res.json();
       editor.setValue(data.content);
 
-      const language = getLanguageFromFilename(file.name);
+      // Try filename first, then detect from content
+      const languageFromFilename = getLanguageFromFilename(file.name);
+      const detectedLanguage = detectLanguageFromContent(data.content);
+      const language = languageFromFilename !== 'plaintext' ? languageFromFilename : detectedLanguage;
+      
       monaco.editor.setModelLanguage(editor.getModel(), language);
       appendMessage("Drew Bot", `📂 Loaded ${data.filename} (${language})`);
     });
 
-    // --- Save ---
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-      const filename = prompt("Save as:", "main.py");
-      if (!filename) return;
+    // --- Save Function ---
+    async function saveFile() {
+      const filenameInput = document.getElementById('filenameInput');
+      const filename = filenameInput.value.trim();
+      if (!filename) {
+        appendMessage("Drew Bot", "⚠️ Please enter a filename.");
+        filenameInput.focus();
+        return;
+      }
+      
       const res = await fetch("/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -140,32 +533,86 @@
       const lang = getLanguageFromFilename(filename);
       monaco.editor.setModelLanguage(editor.getModel(), lang);
       appendMessage("Drew Bot", `💾 ${data.message} (Detected: ${lang})`);
+    }
+
+    // --- Save Button ---
+    document.getElementById('saveBtn').addEventListener('click', saveFile);
+
+    // --- Save on Enter in filename input ---
+    document.getElementById('filenameInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveFile();
+      }
     });
 
     // --- Undo ---
-    document.getElementById('undoBtn').addEventListener('click', () => {
+    document.getElementById('undoBtn').addEventListener('click', async () => {
       if (previousCode) {
+        const currentCode = editor.getValue();
         editor.setValue(previousCode);
+        
+        // Compute changes to highlight what was undone
+        const changes = computeDiff(currentCode, previousCode);
+        
         appendMessage("Drew Bot", "↩ Code reverted to previous version.");
+        
+        // Highlight undone changes
+        await highlightChangedLines(changes, previousCode);
       } else {
         appendMessage("Drew Bot", "No previous version available.");
       }
     });
 
+    // --- Animation Speed Control ---
+    document.getElementById('animationSpeed').addEventListener('change', (e) => {
+      animationSpeed = e.target.value;
+      const speedEmojis = {
+        slow: '🐌',
+        medium: '⚡',
+        fast: '🚀',
+        instant: '⏩'
+      };
+      appendMessage("Drew Bot", `${speedEmojis[animationSpeed]} Animation speed set to: ${animationSpeed}`);
+    });
+
     // --- Send Message to GPT ---
+    let abortController = null;
+    let isRequestInProgress = false;
+    
     async function sendMessage() {
       const input = document.getElementById('userInput');
+      const sendBtn = document.getElementById('sendBtn');
+      
+      // If request is in progress, stop it
+      if (isRequestInProgress) {
+        if (abortController) {
+          abortController.abort();
+        }
+        return;
+      }
+      
       const msg = input.value.trim();
       if (!msg) return;
       messages.push({ role: "user", content: msg });
       appendMessage("You", msg);
       input.value = "";
 
+      // Update UI to show stop state
+      isRequestInProgress = true;
+      sendBtn.textContent = '⏹ Stop';
+      sendBtn.disabled = false;
+      input.disabled = true;
+
+      // Get selected model for display
+      const selectedModel = document.getElementById('modelSelect').value;
+      const modelDisplayName = selectedModel === 'gpt-4o' ? '4o' : '4o-mini';
+
       // --- Show "thinking" message ---
       const messagesDiv = document.getElementById('messages');
       const thinkingEl = document.createElement('div');
       thinkingEl.classList.add('message', 'system-msg');
-      thinkingEl.innerHTML = `<div class="sender">Drew Bot</div><div class="content">🤔 Drew Bot is thinking<span id="thinkingTime"> (0s)</span>...</div>`;
+      thinkingEl.innerHTML = `<div class="sender">Drew Bot</div><div class="content">🤔 Drew Bot is thinking<span id="thinkingTime"> (0s)</span>... <span style="opacity: 0.7;">(${modelDisplayName})</span></div>`;
       messagesDiv.appendChild(thinkingEl);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
@@ -177,16 +624,27 @@
         if (timeEl) timeEl.textContent = ` (${seconds}s)`;
       }, 1000);
 
+      // Create abort controller
+      abortController = new AbortController();
+
       try {
+        const selectedModel = document.getElementById('modelSelect').value;
         const res = await fetch("/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages, code: editor.getValue() })
+          body: JSON.stringify({ messages, code: editor.getValue(), model: selectedModel }),
+          signal: abortController.signal
         });
 
         const data = await res.json();
         clearInterval(timer);
         thinkingEl.remove();
+        
+        // Reset UI
+        isRequestInProgress = false;
+        sendBtn.textContent = 'Send';
+        input.disabled = false;
+        abortController = null;
 
         const endTime = performance.now();
         const totalSeconds = ((endTime - startTime) / 1000).toFixed(1);
@@ -201,19 +659,48 @@
           summaryText = reply.split(codeMatch[0])[0].trim();
           previousCode = editor.getValue();
           const newCode = codeMatch[1].trim();
-          editor.setValue(newCode);
-          appendMessage(
-            "Drew Bot",
-            `${summaryText || "✅ Code updated from Drew Bot changes."}<br><br>⏱ Response time: ${totalSeconds}s`
-          );
+          
+          // Check if the extracted code seems incomplete (much shorter than current code)
+          const currentCode = editor.getValue();
+          const currentLines = currentCode.split('\n').length;
+          const newLines = newCode.split('\n').length;
+          
+          // If new code is less than 50% of current code, it might be incomplete
+          if (currentLines > 10 && newLines < currentLines * 0.5) {
+            appendMessage("Drew Bot", `⚠️ Warning: The AI response appears to contain only partial code (${newLines} lines vs ${currentLines} lines). Please check if all code was returned.`);
+            appendMessage("Drew Bot", `💬 ${reply}<br><br>⏱ Response time: ${totalSeconds}s <span style="opacity: 0.7;">(${modelDisplayName})</span>`);
+          } else {
+            // Apply code with animation
+            const changes = await animateCodeChange(newCode);
+            
+            // Show message before highlighting
+            appendMessage(
+              "Drew Bot",
+              `${summaryText || "✅ Code updated from Drew Bot changes."}<br><br>⏱ Response time: ${totalSeconds}s <span style="opacity: 0.7;">(${modelDisplayName})</span>`
+            );
+            
+            // Highlight changed lines after message appears
+            await highlightChangedLines(changes, newCode);
+          }
         } else {
-          appendMessage("Drew Bot", `💬 ${reply}<br><br>⏱ Response time: ${totalSeconds}s`);
+          appendMessage("Drew Bot", `💬 ${reply}<br><br>⏱ Response time: ${totalSeconds}s <span style="opacity: 0.7;">(${modelDisplayName})</span>`);
         }
       } catch (error) {
         clearInterval(timer);
         thinkingEl.remove();
-        appendMessage("Drew Bot", "⚠️ There was an error reaching the API.");
-        console.error(error);
+        
+        // Reset UI
+        isRequestInProgress = false;
+        sendBtn.textContent = 'Send';
+        input.disabled = false;
+        abortController = null;
+        
+        if (error.name === 'AbortError') {
+          appendMessage("Drew Bot", "⏹ Request cancelled.");
+        } else {
+          appendMessage("Drew Bot", "⚠️ There was an error reaching the API.");
+          console.error(error);
+        }
       }
     }
 

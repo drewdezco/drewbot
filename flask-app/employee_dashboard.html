@@ -1,0 +1,1092 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Employee Dashboard</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #121212;
+                color: #e0e0e0;
+                margin: 0;
+                padding: 20px;
+                overflow-x: hidden;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #1e1e1e;
+                border-radius: 5px;
+                box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+            }
+            h1 {
+                color: #ffffff;
+                text-align: center;
+                margin-bottom: 20px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+                border: 2px solid #444;
+                padding: 20px;
+                border-radius: 5px;
+            }
+            .collapsible {
+                width: 100%;
+                background-color: #1e1e1e;
+                color: #e0e0e0;
+                cursor: pointer;
+                padding: 15px;
+                border: none;
+                text-align: left;
+                outline: none;
+                font-size: 16px;
+                border-radius: 5px;
+                margin-top: 10px;
+                transition: all 0.2s ease;
+                position: relative;
+            }
+            .collapsible::after {
+                content: '\25BC';
+                float: right;
+                transition: transform 0.2s ease;
+            }
+            .active.collapsible::after {
+                transform: rotate(180deg);
+            }
+            .active, .collapsible:hover {
+                background-color: #272727;
+            }
+            .content {
+                padding: 15px;
+                display: none;
+                overflow: hidden;
+                background-color: #1c1c1c;
+                border-radius: 5px;
+                border: 1px solid #444;
+                margin-top: 5px;  /* Added spacing between tab and content */
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            th, td {
+                border: 1px solid #444;
+                padding: 15px;
+                text-align: left;
+                transition: background-color 0.3s;
+                color: #e0e0e0;
+            }
+            th {
+                background-color: #272727;
+                color: #ffffff;
+                text-transform: uppercase;
+            }
+            tr:nth-child(even) {
+                background-color: #1e1e1e;
+            }
+            tr:hover {
+                background-color: #272727;
+            }
+            tr:last-child td {
+                border-bottom: 2px solid #444;
+            }
+            .pagination {
+                text-align: center;
+                margin: 20px 0;
+            }
+            .page-link {
+                cursor: pointer;
+                color: #0099cc;
+                padding: 10px;
+            }
+            .page-link:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Employee Dashboard</h1>
+
+            <button class="collapsible" onclick="toggleCollapsible(this)">Employee Information</button>
+            <div class="content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Salary</th>
+                            <th>Hire Date</th>
+                            <th>Performance Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+        <tr class="data-row">
+            <td>1</td>
+            <td>Employee 1</td>
+            <td>Marketing</td>
+            <td>$118778</td>
+            <td>2010-01-31</td>
+            <td>2.49</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>2</td>
+            <td>Employee 2</td>
+            <td>HR</td>
+            <td>$76223</td>
+            <td>2010-02-28</td>
+            <td>2.68</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>3</td>
+            <td>Employee 3</td>
+            <td>Sales</td>
+            <td>$101570</td>
+            <td>2010-03-31</td>
+            <td>1.2</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>4</td>
+            <td>Employee 4</td>
+            <td>Sales</td>
+            <td>$46521</td>
+            <td>2010-04-30</td>
+            <td>2.46</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>5</td>
+            <td>Employee 5</td>
+            <td>Sales</td>
+            <td>$96894</td>
+            <td>2010-05-31</td>
+            <td>1.07</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>6</td>
+            <td>Employee 6</td>
+            <td>Finance</td>
+            <td>$114659</td>
+            <td>2010-06-30</td>
+            <td>1.92</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>7</td>
+            <td>Employee 7</td>
+            <td>Sales</td>
+            <td>$54254</td>
+            <td>2010-07-31</td>
+            <td>4.06</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>8</td>
+            <td>Employee 8</td>
+            <td>IT</td>
+            <td>$91939</td>
+            <td>2010-08-31</td>
+            <td>4.78</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>9</td>
+            <td>Employee 9</td>
+            <td>Marketing</td>
+            <td>$77073</td>
+            <td>2010-09-30</td>
+            <td>4.0</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>10</td>
+            <td>Employee 10</td>
+            <td>HR</td>
+            <td>$63310</td>
+            <td>2010-10-31</td>
+            <td>2.36</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>11</td>
+            <td>Employee 11</td>
+            <td>HR</td>
+            <td>$71785</td>
+            <td>2010-11-30</td>
+            <td>2.96</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>12</td>
+            <td>Employee 12</td>
+            <td>Marketing</td>
+            <td>$104570</td>
+            <td>2010-12-31</td>
+            <td>2.36</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>13</td>
+            <td>Employee 13</td>
+            <td>IT</td>
+            <td>$96356</td>
+            <td>2011-01-31</td>
+            <td>1.72</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>14</td>
+            <td>Employee 14</td>
+            <td>Finance</td>
+            <td>$63306</td>
+            <td>2011-02-28</td>
+            <td>1.68</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>15</td>
+            <td>Employee 15</td>
+            <td>HR</td>
+            <td>$76950</td>
+            <td>2011-03-31</td>
+            <td>2.85</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>16</td>
+            <td>Employee 16</td>
+            <td>Finance</td>
+            <td>$118696</td>
+            <td>2011-04-30</td>
+            <td>4.5</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>17</td>
+            <td>Employee 17</td>
+            <td>Finance</td>
+            <td>$118928</td>
+            <td>2011-05-31</td>
+            <td>4.78</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>18</td>
+            <td>Employee 18</td>
+            <td>HR</td>
+            <td>$119904</td>
+            <td>2011-06-30</td>
+            <td>3.43</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>19</td>
+            <td>Employee 19</td>
+            <td>Finance</td>
+            <td>$110838</td>
+            <td>2011-07-31</td>
+            <td>3.39</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>20</td>
+            <td>Employee 20</td>
+            <td>Marketing</td>
+            <td>$73920</td>
+            <td>2011-08-31</td>
+            <td>4.13</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>21</td>
+            <td>Employee 21</td>
+            <td>Sales</td>
+            <td>$119128</td>
+            <td>2011-09-30</td>
+            <td>3.0</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>22</td>
+            <td>Employee 22</td>
+            <td>HR</td>
+            <td>$73538</td>
+            <td>2011-10-31</td>
+            <td>1.2</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>23</td>
+            <td>Employee 23</td>
+            <td>Sales</td>
+            <td>$48286</td>
+            <td>2011-11-30</td>
+            <td>3.8</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>24</td>
+            <td>Employee 24</td>
+            <td>HR</td>
+            <td>$58728</td>
+            <td>2011-12-31</td>
+            <td>4.97</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>25</td>
+            <td>Employee 25</td>
+            <td>IT</td>
+            <td>$53640</td>
+            <td>2012-01-31</td>
+            <td>2.07</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>26</td>
+            <td>Employee 26</td>
+            <td>Sales</td>
+            <td>$108627</td>
+            <td>2012-02-29</td>
+            <td>3.72</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>27</td>
+            <td>Employee 27</td>
+            <td>HR</td>
+            <td>$85663</td>
+            <td>2012-03-31</td>
+            <td>4.46</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>28</td>
+            <td>Employee 28</td>
+            <td>Finance</td>
+            <td>$43912</td>
+            <td>2012-04-30</td>
+            <td>4.0</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>29</td>
+            <td>Employee 29</td>
+            <td>Sales</td>
+            <td>$90586</td>
+            <td>2012-05-31</td>
+            <td>4.86</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>30</td>
+            <td>Employee 30</td>
+            <td>Sales</td>
+            <td>$112130</td>
+            <td>2012-06-30</td>
+            <td>3.22</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>31</td>
+            <td>Employee 31</td>
+            <td>Sales</td>
+            <td>$61752</td>
+            <td>2012-07-31</td>
+            <td>1.85</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>32</td>
+            <td>Employee 32</td>
+            <td>HR</td>
+            <td>$99715</td>
+            <td>2012-08-31</td>
+            <td>1.89</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>33</td>
+            <td>Employee 33</td>
+            <td>Finance</td>
+            <td>$47997</td>
+            <td>2012-09-30</td>
+            <td>1.87</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>34</td>
+            <td>Employee 34</td>
+            <td>Finance</td>
+            <td>$93006</td>
+            <td>2012-10-31</td>
+            <td>3.28</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>35</td>
+            <td>Employee 35</td>
+            <td>Finance</td>
+            <td>$80800</td>
+            <td>2012-11-30</td>
+            <td>2.81</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>36</td>
+            <td>Employee 36</td>
+            <td>HR</td>
+            <td>$55620</td>
+            <td>2012-12-31</td>
+            <td>4.88</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>37</td>
+            <td>Employee 37</td>
+            <td>IT</td>
+            <td>$110381</td>
+            <td>2013-01-31</td>
+            <td>3.72</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>38</td>
+            <td>Employee 38</td>
+            <td>Marketing</td>
+            <td>$94268</td>
+            <td>2013-02-28</td>
+            <td>1.34</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>39</td>
+            <td>Employee 39</td>
+            <td>Sales</td>
+            <td>$109069</td>
+            <td>2013-03-31</td>
+            <td>1.23</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>40</td>
+            <td>Employee 40</td>
+            <td>Sales</td>
+            <td>$108473</td>
+            <td>2013-04-30</td>
+            <td>2.95</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>41</td>
+            <td>Employee 41</td>
+            <td>IT</td>
+            <td>$82512</td>
+            <td>2013-05-31</td>
+            <td>4.52</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>42</td>
+            <td>Employee 42</td>
+            <td>Marketing</td>
+            <td>$59608</td>
+            <td>2013-06-30</td>
+            <td>4.91</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>43</td>
+            <td>Employee 43</td>
+            <td>IT</td>
+            <td>$110557</td>
+            <td>2013-07-31</td>
+            <td>3.47</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>44</td>
+            <td>Employee 44</td>
+            <td>HR</td>
+            <td>$57340</td>
+            <td>2013-08-31</td>
+            <td>3.17</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>45</td>
+            <td>Employee 45</td>
+            <td>HR</td>
+            <td>$41913</td>
+            <td>2013-09-30</td>
+            <td>4.42</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>46</td>
+            <td>Employee 46</td>
+            <td>Marketing</td>
+            <td>$92086</td>
+            <td>2013-10-31</td>
+            <td>3.98</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>47</td>
+            <td>Employee 47</td>
+            <td>HR</td>
+            <td>$53429</td>
+            <td>2013-11-30</td>
+            <td>2.91</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>48</td>
+            <td>Employee 48</td>
+            <td>Marketing</td>
+            <td>$53907</td>
+            <td>2013-12-31</td>
+            <td>3.71</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>49</td>
+            <td>Employee 49</td>
+            <td>Finance</td>
+            <td>$75489</td>
+            <td>2014-01-31</td>
+            <td>3.43</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>50</td>
+            <td>Employee 50</td>
+            <td>Marketing</td>
+            <td>$50088</td>
+            <td>2014-02-28</td>
+            <td>3.86</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>51</td>
+            <td>Employee 51</td>
+            <td>Finance</td>
+            <td>$55588</td>
+            <td>2014-03-31</td>
+            <td>2.88</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>52</td>
+            <td>Employee 52</td>
+            <td>IT</td>
+            <td>$78395</td>
+            <td>2014-04-30</td>
+            <td>2.82</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>53</td>
+            <td>Employee 53</td>
+            <td>IT</td>
+            <td>$100155</td>
+            <td>2014-05-31</td>
+            <td>4.63</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>54</td>
+            <td>Employee 54</td>
+            <td>HR</td>
+            <td>$78214</td>
+            <td>2014-06-30</td>
+            <td>1.55</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>55</td>
+            <td>Employee 55</td>
+            <td>Finance</td>
+            <td>$40469</td>
+            <td>2014-07-31</td>
+            <td>1.92</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>56</td>
+            <td>Employee 56</td>
+            <td>Finance</td>
+            <td>$83295</td>
+            <td>2014-08-31</td>
+            <td>4.53</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>57</td>
+            <td>Employee 57</td>
+            <td>Finance</td>
+            <td>$114253</td>
+            <td>2014-09-30</td>
+            <td>4.62</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>58</td>
+            <td>Employee 58</td>
+            <td>Finance</td>
+            <td>$74488</td>
+            <td>2014-10-31</td>
+            <td>3.58</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>59</td>
+            <td>Employee 59</td>
+            <td>Sales</td>
+            <td>$78040</td>
+            <td>2014-11-30</td>
+            <td>2.3</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>60</td>
+            <td>Employee 60</td>
+            <td>Sales</td>
+            <td>$56975</td>
+            <td>2014-12-31</td>
+            <td>3.08</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>61</td>
+            <td>Employee 61</td>
+            <td>IT</td>
+            <td>$55912</td>
+            <td>2015-01-31</td>
+            <td>1.0</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>62</td>
+            <td>Employee 62</td>
+            <td>Sales</td>
+            <td>$68086</td>
+            <td>2015-02-28</td>
+            <td>2.25</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>63</td>
+            <td>Employee 63</td>
+            <td>HR</td>
+            <td>$55115</td>
+            <td>2015-03-31</td>
+            <td>2.7</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>64</td>
+            <td>Employee 64</td>
+            <td>Sales</td>
+            <td>$119983</td>
+            <td>2015-04-30</td>
+            <td>4.54</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>65</td>
+            <td>Employee 65</td>
+            <td>Marketing</td>
+            <td>$92573</td>
+            <td>2015-05-31</td>
+            <td>3.72</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>66</td>
+            <td>Employee 66</td>
+            <td>Finance</td>
+            <td>$104223</td>
+            <td>2015-06-30</td>
+            <td>2.82</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>67</td>
+            <td>Employee 67</td>
+            <td>IT</td>
+            <td>$51052</td>
+            <td>2015-07-31</td>
+            <td>2.93</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>68</td>
+            <td>Employee 68</td>
+            <td>Marketing</td>
+            <td>$55741</td>
+            <td>2015-08-31</td>
+            <td>4.15</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>69</td>
+            <td>Employee 69</td>
+            <td>Sales</td>
+            <td>$97368</td>
+            <td>2015-09-30</td>
+            <td>1.92</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>70</td>
+            <td>Employee 70</td>
+            <td>Marketing</td>
+            <td>$83986</td>
+            <td>2015-10-31</td>
+            <td>4.52</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>71</td>
+            <td>Employee 71</td>
+            <td>Marketing</td>
+            <td>$45103</td>
+            <td>2015-11-30</td>
+            <td>2.25</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>72</td>
+            <td>Employee 72</td>
+            <td>Marketing</td>
+            <td>$75050</td>
+            <td>2015-12-31</td>
+            <td>4.83</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>73</td>
+            <td>Employee 73</td>
+            <td>Sales</td>
+            <td>$41740</td>
+            <td>2016-01-31</td>
+            <td>2.89</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>74</td>
+            <td>Employee 74</td>
+            <td>Marketing</td>
+            <td>$95270</td>
+            <td>2016-02-29</td>
+            <td>3.85</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>75</td>
+            <td>Employee 75</td>
+            <td>Marketing</td>
+            <td>$52579</td>
+            <td>2016-03-31</td>
+            <td>1.61</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>76</td>
+            <td>Employee 76</td>
+            <td>Marketing</td>
+            <td>$111382</td>
+            <td>2016-04-30</td>
+            <td>3.92</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>77</td>
+            <td>Employee 77</td>
+            <td>HR</td>
+            <td>$87805</td>
+            <td>2016-05-31</td>
+            <td>3.59</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>78</td>
+            <td>Employee 78</td>
+            <td>Marketing</td>
+            <td>$60165</td>
+            <td>2016-06-30</td>
+            <td>1.86</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>79</td>
+            <td>Employee 79</td>
+            <td>Sales</td>
+            <td>$42775</td>
+            <td>2016-07-31</td>
+            <td>1.75</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>80</td>
+            <td>Employee 80</td>
+            <td>IT</td>
+            <td>$70752</td>
+            <td>2016-08-31</td>
+            <td>4.23</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>81</td>
+            <td>Employee 81</td>
+            <td>HR</td>
+            <td>$119464</td>
+            <td>2016-09-30</td>
+            <td>3.99</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>82</td>
+            <td>Employee 82</td>
+            <td>Finance</td>
+            <td>$111892</td>
+            <td>2016-10-31</td>
+            <td>3.7</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>83</td>
+            <td>Employee 83</td>
+            <td>Finance</td>
+            <td>$73930</td>
+            <td>2016-11-30</td>
+            <td>2.11</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>84</td>
+            <td>Employee 84</td>
+            <td>Sales</td>
+            <td>$86774</td>
+            <td>2016-12-31</td>
+            <td>1.7</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>85</td>
+            <td>Employee 85</td>
+            <td>HR</td>
+            <td>$68651</td>
+            <td>2017-01-31</td>
+            <td>3.82</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>86</td>
+            <td>Employee 86</td>
+            <td>HR</td>
+            <td>$102885</td>
+            <td>2017-02-28</td>
+            <td>2.85</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>87</td>
+            <td>Employee 87</td>
+            <td>Finance</td>
+            <td>$55997</td>
+            <td>2017-03-31</td>
+            <td>4.36</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>88</td>
+            <td>Employee 88</td>
+            <td>IT</td>
+            <td>$105180</td>
+            <td>2017-04-30</td>
+            <td>1.82</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>89</td>
+            <td>Employee 89</td>
+            <td>Marketing</td>
+            <td>$114498</td>
+            <td>2017-05-31</td>
+            <td>1.66</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>90</td>
+            <td>Employee 90</td>
+            <td>IT</td>
+            <td>$103003</td>
+            <td>2017-06-30</td>
+            <td>1.5</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>91</td>
+            <td>Employee 91</td>
+            <td>HR</td>
+            <td>$74009</td>
+            <td>2017-07-31</td>
+            <td>3.89</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>92</td>
+            <td>Employee 92</td>
+            <td>Sales</td>
+            <td>$83671</td>
+            <td>2017-08-31</td>
+            <td>1.12</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>93</td>
+            <td>Employee 93</td>
+            <td>IT</td>
+            <td>$109939</td>
+            <td>2017-09-30</td>
+            <td>3.99</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>94</td>
+            <td>Employee 94</td>
+            <td>IT</td>
+            <td>$57582</td>
+            <td>2017-10-31</td>
+            <td>1.37</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>95</td>
+            <td>Employee 95</td>
+            <td>HR</td>
+            <td>$69844</td>
+            <td>2017-11-30</td>
+            <td>1.87</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>96</td>
+            <td>Employee 96</td>
+            <td>Finance</td>
+            <td>$78429</td>
+            <td>2017-12-31</td>
+            <td>4.0</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>97</td>
+            <td>Employee 97</td>
+            <td>HR</td>
+            <td>$116323</td>
+            <td>2018-01-31</td>
+            <td>3.93</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>98</td>
+            <td>Employee 98</td>
+            <td>IT</td>
+            <td>$100809</td>
+            <td>2018-02-28</td>
+            <td>1.18</td>
+            <td>Active</td>
+        </tr>
+        <tr class="data-row">
+            <td>99</td>
+            <td>Employee 99</td>
+            <td>IT</td>
+            <td>$42121</td>
+            <td>2018-03-31</td>
+            <td>1.84</td>
+            <td>Inactive</td>
+        </tr>
+        <tr class="data-row">
+            <td>100</td>
+            <td>Employee 100</td>
+            <td>Sales</td>
+            <td>$85353</td>
+            <td>2018-04-30</td>
+            <td>2.15</td>
+            <td>Inactive</td>
+        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <span id="prev" class="page-link" onclick="prevPage()">&#9664; Prev</span>
+                    <span id="current-page">1 of 10</span>
+                    <span id="next" class="page-link" onclick="nextPage()">Next &#9654;</span>
+                </div>
+            </div>
+
+            <button class="collapsible" onclick="toggleCollapsible(this)">Department Statistics</button>
+            <div class="content">
+                <p>Placeholder for department statistics or graphs.</p>
+            </div>
+        </div>
+
+        <script>
+            let currentPage = 1;
+
+            function showPage(page) {
+                currentPage = page;
+                const rows = document.querySelectorAll('.data-row');
+                const totalPages = 10;
+
+                rows.forEach(row => row.style.display = 'none');
+
+                const start = (currentPage - 1) * 10;
+                const end = start + 10;
+
+                for (let i = start; i < end && i < rows.length; i++) {
+                    rows[i].style.display = '';
+                }
+
+                document.getElementById('prev').style.visibility = currentPage === 1 ? 'hidden' : 'visible';
+                document.getElementById('next').style.visibility = currentPage === totalPages ? 'hidden' : 'visible';
+                document.getElementById('current-page').innerText = currentPage + ' of ' + totalPages;
+            }
+
+            function prevPage() {
+                if (currentPage > 1) showPage(currentPage - 1);
+            }
+
+            function nextPage() {
+                if (currentPage < 10) showPage(currentPage + 1);
+            }
+
+            function toggleCollapsible(button) {
+                button.classList.toggle("active");
+                const content = button.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                showPage(1);
+            });
+        </script>
+    </body>
+    </html>
+    

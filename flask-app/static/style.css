@@ -15,32 +15,66 @@ html, body {
 header {
   background: #1a1a1a;
   border-bottom: 1px solid #2a2a2a;
-  padding: 0.4rem 1rem;          /* ↓ less vertical space */
+  padding: 0.6rem 1rem;
   flex-shrink: 0;
 }
 
 #top-bar {
   display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Top row: Choose File */
+#top-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 40px;                  /* ↓ fixed compact height */
+  width: 100%;
+}
+
+#model-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Bottom row: Filename | Save | Undo | Title | Speed */
+#bottom-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+}
+
+#file-controls-bottom {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  justify-content: flex-start;
+}
+
+#speed-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#file-controls-top {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 /* TITLE */
 header h1 {
   margin: 0;
-  font-size: 1.2rem;             /* ↓ smaller text */
+  font-size: 1.2rem;
   font-weight: 600;
   color: #eaeaea;
   letter-spacing: 0.3px;
-}
-
-/* FILE + BUTTON GROUPS */
-#left-controls,
-#right-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  text-align: center;
+  grid-column: 2;
 }
 
 /* FILE UPLOAD */
@@ -170,6 +204,53 @@ button:active {
   border-color: #777;
 }
 
+/* ANIMATION SPEED DROPDOWN */
+select {
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  background: #1f1f1f;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  outline: none;
+}
+
+select:hover {
+  background: #2b2b2b;
+  border-color: #555;
+}
+
+select:focus {
+  background: #2b2b2b;
+  border-color: #666;
+}
+
+/* FILENAME INPUT */
+.filename-input {
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  background: #1f1f1f;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  width: 140px;
+  outline: none;
+  transition: background 0.2s, border-color 0.2s;
+  font-family: 'Inter', 'Consolas', monospace;
+}
+
+.filename-input:hover {
+  background: #2b2b2b;
+  border-color: #555;
+}
+
+.filename-input:focus {
+  background: #2b2b2b;
+  border-color: #888;
+}
+
 /* MAIN GRID */
 main {
   flex: 1;
@@ -177,7 +258,7 @@ main {
   grid-template-columns: 1fr 0.8fr;
   gap: 0.8rem;
   padding: 1rem;
-  height: calc(100% - 120px);
+  height: calc(100% - 100px);
   overflow: hidden; /* ✅ keep content contained */
 }
 
@@ -291,4 +372,101 @@ main {
 .message ul, .message ol {
   padding-left: 1.2rem;
   margin: 0.5rem 0;
+}
+
+/* CODE ANIMATION EFFECTS */
+.line-changing {
+  background-color: rgba(255, 255, 0, 0.15) !important;
+  opacity: 0;
+  animation: fade-in-highlight 0.3s ease-out forwards;
+}
+
+.line-changing-fast {
+  background-color: rgba(255, 255, 0, 0.15) !important;
+  opacity: 0;
+  animation: fade-in-highlight 0.05s ease-out forwards;
+}
+
+.line-changing.line-changing-fade-out {
+  animation: fade-out-highlight 0.3s ease-out forwards;
+}
+
+.line-changing-fast.line-changing-fade-out-fast {
+  animation: fade-out-highlight 0.05s ease-out forwards;
+}
+
+.line-changing-glyph {
+  background: rgba(255, 255, 0, 0.3);
+  width: 3px !important;
+  opacity: 0;
+  animation: fade-in-glyph 0.3s ease-out forwards;
+}
+
+.line-changing-glyph-fast {
+  background: rgba(255, 255, 0, 0.3);
+  width: 3px !important;
+  opacity: 0;
+  animation: fade-in-glyph 0.05s ease-out forwards;
+}
+
+.line-changing-glyph.line-changing-fade-out {
+  animation: fade-out-glyph 0.3s ease-out forwards;
+}
+
+.line-changing-glyph-fast.line-changing-fade-out-fast {
+  animation: fade-out-glyph 0.05s ease-out forwards;
+}
+
+@keyframes fade-in-highlight {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-glyph {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out-highlight {
+  0% {
+    opacity: 1;
+    background-color: rgba(255, 255, 0, 0.15);
+  }
+  100% {
+    opacity: 0;
+    background-color: rgba(255, 255, 0, 0);
+  }
+}
+
+@keyframes fade-out-glyph {
+  0% {
+    opacity: 1;
+    background: rgba(255, 255, 0, 0.3);
+  }
+  100% {
+    opacity: 0;
+    background: rgba(255, 255, 0, 0);
+  }
+}
+
+/* Typing cursor effect (optional visual enhancement) */
+.monaco-editor .cursors-layer .cursor {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  50.01%, 100% {
+    opacity: 0;
+  }
 }

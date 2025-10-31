@@ -19,9 +19,10 @@ def chat():
     data = request.json
     code = data.get("code", "")
     messages = data.get("messages", [])
+    model = data.get("model", "gpt-4o-mini")  # Default to 4o-mini
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=model,
         messages=[
             {
                 "role": "system",
@@ -29,8 +30,10 @@ def chat():
                     "You are an expert software assistant. "
                     "When modifying the code, first provide a short, clear **Markdown bullet list** of the specific edits made "
                     "(3–7 concise points max). Each item should describe a unique change. "
-                    "Do NOT restate or reprint the full code unless explicitly asked. "
-                    "After your list, include a fenced code block (```python ... ```) containing ONLY the final revised code.\n"
+                    "IMPORTANT: After your list, include a fenced code block (```python ... ```) containing the COMPLETE, FULL file "
+                    "with all modifications applied. You MUST include the entire file from start to finish, not just the modified sections. "
+                    "Preserve all existing code that wasn't changed, and include all imports, functions, and code exactly as they appear in the original, "
+                    "except for the specific modifications requested.\n"
                     "When asked for explanation or reasoning, respond with Markdown-formatted plain text and no fenced code."
                 ),
             },

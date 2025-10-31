@@ -1,82 +1,115 @@
 import pandas as pd
 import numpy as np
+import random
 
-# Generate random business data for employees
-np.random.seed(0)  # For reproducibility
-employees = pd.DataFrame({
-    'Employee ID': range(1, 101),
-    'Name': [f'Employee {i}' for i in range(1, 101)],
-    'Department': np.random.choice(['HR', 'Finance', 'IT', 'Sales', 'Marketing'], size=100),
-    'Salary': np.random.randint(40000, 120000, size=100),
-    'Hire Date': pd.date_range(start='2010-01-01', periods=100, freq='M').date,
-    'Performance Score': np.random.uniform(1, 5, size=100).round(2),
-    'Status': np.random.choice(['Active', 'Inactive'], size=100)
-})
+def setup_environment():
+    """
+    Import necessary libraries and return them.
 
-# Save DataFrame to a more attractive HTML template
-html_template = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Dashboard</title>
-    <style>
-        body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e9ecef;
-            color: #495057;
-            margin: 0;
-            padding: 20px;
-        }}
-        h1 {{
-            color: #007bff;
-            text-align: center;
-            margin-bottom: 20px;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }}
-        th, td {{
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            text-align: left;
-            transition: background-color 0.3s;
-        }}
-        th {{
-            background-color: #007bff;
-            color: white;
-            text-transform: uppercase;
-        }}
-        tr:nth-child(even) {{
-            background-color: #f8f9fa;
-        }}
-        tr:hover {{
-            background-color: #d1ecf1;
-        }}
-        tr:last-child td {{
-            border-bottom: 2px solid #007bff;
-        }}
-    </style>
-</head>
-<body>
-    <h1>Employee Dashboard</h1>
-    {table}
-</body>
-</html>
-"""
+    Returns:
+    tuple: A tuple containing the imported `pandas`, `numpy`, and `random` modules.
 
-# Create HTML table from DataFrame
-html_table = employees.to_html(index=False)
+    This function serves to modularize the code by importing and returning the essential
+    libraries required in the script.
+    """
+    import pandas as pd
+    import numpy as np
+    import random
+    return pd, np, random
 
-# Fill in the template with the table
-final_html = html_template.format(table=html_table)
+def set_random_seed(seed=42):
+    """
+    Set the random seed for the random and numpy libraries to ensure reproducibility.
 
-# Save the final HTML to a file
-with open('employee_dashboard.html', 'w') as f:
-    f.write(final_html)
+    Parameters:
+    seed (int): The seed value to use for initialization. Default is 42.
+
+    This function sets the seed for Python's built-in random library
+    and NumPy's random number generator. Using the same seed across runs
+    guarantees that you get the same sequence of random numbers, which is
+    particularly beneficial during development and testing to ensure consistent
+    behavior and output.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+
+def create_dataframe():
+    """
+    Create a DataFrame with business-related columns and random data.
+
+    Returns:
+    DataFrame: A pandas DataFrame with synthetic data for analysis.
+
+    The generated DataFrame contains columns like `Revenue`, `Expenses`, `Profit`, etc.,
+    with random values suitable for simulating a business data analysis scenario.
+    """
+    columns = ['Business_ID', 'Revenue', 'Expenses', 'Profit', 
+               'Number_of_Employees', 'Customer_Satisfaction', 
+               'Market_Share', 'Growth_Rate', 'Industry_Ranking']
+    data = pd.DataFrame({
+        'Business_ID': range(1, 126),
+        'Revenue': np.random.randint(10000, 1000000, size=125),
+        'Expenses': np.random.randint(5000, 500000, size=125),
+        'Profit': np.random.randint(0, 500000, size=125),
+        'Number_of_Employees': np.random.randint(10, 1000, size=125),
+        'Customer_Satisfaction': np.random.rand(125) * 100,
+        'Market_Share': np.random.rand(125) * 100,
+        'Growth_Rate': np.random.rand(125) * 10,
+        'Industry_Ranking': np.random.randint(1, 100, size=125)
+    })
+    return data
+
+def introduce_missing_data(data, fraction=0.1):
+    """
+    Introduce missing values into a DataFrame.
+
+    Parameters:
+    data (DataFrame): The DataFrame to modify.
+    fraction (float): The fraction of data to be replaced with NaN values. Default is 0.1.
+
+    Iterates through the columns and randomly assigns NaN values in them based on the specified fraction
+    to simulate real-world scenarios where data may be incomplete.
+    """
+    for col in data.columns[1:]:
+        data.loc[data.sample(frac=fraction).index, col] = np.nan
+
+def analyze_data(data):
+    """
+    Provide a summary analysis of the data.
+
+    Parameters:
+    data (DataFrame): The DataFrame to analyze.
+
+    Returns:
+    tuple: A tuple containing a DataFrame summary and metrics.
+
+    Generates descriptive statistics and additional metrics like count of missing values, mean, and median
+    for the DataFrame, helping to understand the dataset in practical scenarios.
+    """
+    data_summary = data.describe()
+    missing_values_count = data.isnull().sum()
+    metrics = pd.DataFrame({
+        'Mean': data.mean(),
+        'Median': data.median(),
+        'Missing_Values_Count': missing_values_count
+    })
+    return data_summary, metrics
+
+def main():
+    """
+    Execute the main workflow for data simulation and analysis.
+
+    This function sets up the environment, seeds random number generators,
+    creates and modifies a DataFrame with synthetic data, introduces missing data,
+    and performs data analysis, printing the results.
+    """
+    print("Running test script...")
+    setup_environment()
+    set_random_seed()
+    data = create_dataframe()
+    introduce_missing_data(data)
+    data_summary, metrics = analyze_data(data)
+    print(data_summary)
+    print(metrics)
+
+main()
